@@ -26,9 +26,10 @@ jobs:
         run: |
           echo ${{ github.sha }} - commit sha that triggered this workflow
           echo ${{ github.event.before }} - previous sha
-          git --no-pager diff --name-only ${{ github.sha }} ${{ github.event.before }}
+          git --no-pager diff --name-only ${{ github.event.before }} ${{ github.sha }}
 
       - name: Git files changed when pr is created/updated
         if: github.event_name=='pull_request'
         run: |
           git --no-pager diff --name-only ${{github.head_ref}} ${{github.base_ref}}
+          
