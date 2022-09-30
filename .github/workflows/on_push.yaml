@@ -1,0 +1,9 @@
+name: Push on any branch
+on:
+  push:
+
+jobs:
+  Get-files-changed:
+    uses: ./.github/workflows/files_changed.yaml
+    with:
+      folder_path: /

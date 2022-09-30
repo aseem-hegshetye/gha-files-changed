@@ -1,0 +1,30 @@
+# If any file in input folder_path was changed then return true else return false
+# echo all changed files
+# for PUSH event - compare current commit with previous commit
+# for PULL_REQUEST event - compare source branch with target branch
+name: If files in folder_path were changed
+
+on:
+  workflow_call:
+    inputs:
+      folder_path:
+        required: true
+        type: string
+
+jobs:
+  if-file-changed:
+    name: Check if files changed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get files changed on push
+        # if push on dev or master or main then get diff between current and previous commit
+        if: github.event_name=='push' && contains(fromJson('["dev", "master","main"]'), github.ref_name)
+        run: |
+          echo ${{ github.sha }} - commit sha that triggered this workflow
+          echo ${{ github.event.before }} - previous sha
+          git --no-pager diff --name-only ${{ github.sha }} ${{ github.event.before }}
+
+      - name: Git files changed when pr is created/updated
+        if: github.event_name=='pull_request'
+        run: |
+          git --no-pager diff --name-only ${{github.head_ref}} ${{github.base_ref}}
