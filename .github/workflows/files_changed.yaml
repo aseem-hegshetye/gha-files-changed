@@ -16,7 +16,7 @@ jobs:
     name: Check if files changed
     runs-on: ubuntu-latest
     outputs:
-      folder_changed: ${{ steps.get_boolean_output.outputs.output }}
+      folder_changed: ${{ steps.get_boolean_output.outputs.boolean_output }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,33 +27,46 @@ jobs:
         if: github.event_name=='push' && contains(fromJson('["dev", "master","main"]'), github.ref_name)
         id: files_changed_on_push
         run: |
-          all_changed_files=$(git --no-pager diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          echo all files changed are - 
-          echo $all_changed_files
+          all_changed_files=$(git --no-pager diff --name-only HEAD^ HEAD)
+          echo "::set-output name=all_changed_files::$all_changed_files"
           
-          echo "::set-output name=boolean_output::false"
-          for file in $all_changed_files; do
-           if [[ $file == ${{inputs.folder_path}} ]]; then
-             echo "$file"
-             echo "::set-output name=boolean_output::true"
-             break
-           fi
-          done
 
 
       - name: Git files changed when pr is created/updated
         if: github.event_name=='pull_request'
         id: files_changed_on_pr
         run: |
-          git --no-pager diff --name-only ${{github.head_ref}} ${{github.base_ref}}
+          all_changed_files=$(git --no-pager diff --name-only ${{github.head_ref}} ${{github.base_ref}})
+          echo "::set-output name=all_changed_files::$all_changed_files"
 
       - name: Get combined boolean output
         # if request is PUSH or PR , get appropriate boolean_output
         id: get_boolean_output
         run: |
-          echo "::set-output name=output::false"
-          if [[ ${{steps.files_changed_on_push.outputs.boolean_output}} == true ]] || [[ ${{steps.files_changed_on_pr.outputs.boolean_output}} == true ]]; then
-           echo "::set-output name=output::true"
+          echo step outputs - ${{ steps.files_changed_on_push.outputs }}
+          echo files_changed_on_push outcome - ${{ steps.files_changed_on_push.outcome }}
+          echo files_changed_on_pr outcome - ${{ steps.files_changed_on_pr.outcome }}
+          
+          
+          if [[ ${{ steps.files_changed_on_push.outcome }} == "success" ]]; then
+            all_changed_files=${{ steps.files_changed_on_push.outputs.all_changed_files }}
+          elif [[ ${{ steps.files_changed_on_pr.outcome }} == "success" ]]; then
+            all_changed_files=${{ steps.files_changed_on_pr.outputs.all_changed_files }}
           fi
+          
+          echo all files changed are - 
+          echo $all_changed_files
+          
+          echo "::set-output name=boolean_output::false"
+          for file in $all_changed_files; do
+          echo file = $file 
+           if [[ $file == ${{inputs.folder_path}} ]]; then
+             echo file matches folder_path pattern
+             echo "::set-output name=boolean_output::true"
+             break
+           fi
+          done
+          
+      
 
           
