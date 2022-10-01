@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # fetch all history of all branches
+
       - name: Get files changed on push
         # if push on dev or master or main then get diff between current and previous commit
         if: github.event_name=='push' && contains(fromJson('["dev", "master","main"]'), github.ref_name)
@@ -31,6 +32,7 @@ jobs:
           echo "::set-output name=all_changed_files::$all_changed_files"
 
       - name: Git files changed when pr is created/updated
+        # compare source branch with target branch in Pull request
         if: github.event_name=='pull_request'
         id: files_changed_on_pr
         run: |
