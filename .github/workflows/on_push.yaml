@@ -6,4 +6,4 @@ jobs:
   Get-files-changed:
     uses: ./.github/workflows/files_changed.yaml
     with:
-      folder_path: /
+      folder_path: /*

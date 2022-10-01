@@ -30,7 +30,6 @@ jobs:
           all_changed_files=$(git --no-pager diff --name-only ${{ github.event.before }} ${{ github.sha }})
           echo all files changed are - 
           echo $all_changed_files
-          echo "::set-output name=all_changed_files::$all_changed_files"
           
           echo "::set-output name=boolean_output::false"
           for file in $all_changed_files; do
@@ -53,7 +52,7 @@ jobs:
         id: get_boolean_output
         run: |
           echo "::set-output name=output::false"
-          if [[ ${{steps.files_changed_on_push.boolean_output}} == true || ${{steps.files_changed_on_pr.boolean_output}} == true ]]; then
+          if [[ ${{steps.files_changed_on_push.boolean_output}} == true]] || [[${{steps.files_changed_on_pr.boolean_output}} == true ]]; then
            echo "::set-output name=output::true"
           fi
 
