@@ -15,6 +15,8 @@ jobs:
   if-file-changed:
     name: Check if files changed
     runs-on: ubuntu-latest
+    outputs:
+      folder_changed: ${{ steps.get_boolean_output.outputs.output }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,13 +25,36 @@ jobs:
       - name: Get files changed on push
         # if push on dev or master or main then get diff between current and previous commit
         if: github.event_name=='push' && contains(fromJson('["dev", "master","main"]'), github.ref_name)
+        id: files_changed_on_push
         run: |
-          echo ${{ github.sha }} - commit sha that triggered this workflow
-          echo ${{ github.event.before }} - previous sha
-          git --no-pager diff --name-only ${{ github.event.before }} ${{ github.sha }}
+          all_changed_files=$(git --no-pager diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo all files changed are - 
+          echo $all_changed_files
+          echo "::set-output name=all_changed_files::$all_changed_files"
+          
+          echo "::set-output name=boolean_output::false"
+          for file in $all_changed_files; do
+           if [[ $file == ${{inputs.folder_path}} ]]; then
+             echo "$file"
+             echo "::set-output name=boolean_output::true"
+             break
+           fi
+          done
+
 
       - name: Git files changed when pr is created/updated
         if: github.event_name=='pull_request'
+        id: files_changed_on_pr
         run: |
           git --no-pager diff --name-only ${{github.head_ref}} ${{github.base_ref}}
+
+      - name: Get combined boolean output
+        # if request is PUSH or PR , get appropriate boolean_output
+        id: get_boolean_output
+        run: |
+          echo "::set-output name=output::false"
+          if [[ ${{steps.files_changed_on_push.boolean_output}} == true || ${{steps.files_changed_on_pr.boolean_output}} == true ]]; then
+           echo "::set-output name=output::true"
+          fi
+
           
