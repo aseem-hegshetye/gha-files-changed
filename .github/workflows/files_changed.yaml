@@ -29,8 +29,6 @@ jobs:
         run: |
           all_changed_files=$(git --no-pager diff --name-only HEAD^ HEAD)
           echo "::set-output name=all_changed_files::$all_changed_files"
-          
-
 
       - name: Git files changed when pr is created/updated
         if: github.event_name=='pull_request'
@@ -38,16 +36,12 @@ jobs:
         run: |
           all_changed_files=$(git --no-pager diff --name-only ${{github.head_ref}} ${{github.base_ref}})
           echo "::set-output name=all_changed_files::$all_changed_files"
+          
 
       - name: Get combined boolean output
         # if request is PUSH or PR , get appropriate boolean_output
         id: get_boolean_output
         run: |
-          echo step outputs - ${{ steps.files_changed_on_push.outputs }}
-          echo files_changed_on_push outcome - ${{ steps.files_changed_on_push.outcome }}
-          echo files_changed_on_pr outcome - ${{ steps.files_changed_on_pr.outcome }}
-          
-          
           if [[ ${{ steps.files_changed_on_push.outcome }} == "success" ]]; then
             all_changed_files=${{ steps.files_changed_on_push.outputs.all_changed_files }}
           elif [[ ${{ steps.files_changed_on_pr.outcome }} == "success" ]]; then
