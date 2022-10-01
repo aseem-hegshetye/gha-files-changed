@@ -1,4 +1,4 @@
-name: Push on any branch
+name: Pull request on any branch
 on:
   pull_request:
     branches:

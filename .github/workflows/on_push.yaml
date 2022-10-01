@@ -1,4 +1,4 @@
-name: Push on any branch
+name: Push on main branch
 on:
   push:
     branches:
