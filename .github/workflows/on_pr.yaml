@@ -1,6 +1,6 @@
-name: Push on main branch
+name: Pull request on any branch
 on:
-  push:
+  pull_request:
     branches:
       - main
 
