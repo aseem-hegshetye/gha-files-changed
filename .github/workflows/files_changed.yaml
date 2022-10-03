@@ -6,17 +6,27 @@ name: If files in folder_path were changed
 
 on:
   workflow_call:
+    outputs:
+      all_changed_files:
+        description: List of all changed files in folder_path input
+        value: ${{ jobs.if-file-changed.outputs.all_changed_files }}
+      boolean_output:
+        description: true - if files in folder_path were changed. else false.
+        value: ${{ jobs.if-file-changed.outputs.boolean_output }}
     inputs:
       folder_path:
         required: true
         type: string
+
 
 jobs:
   if-file-changed:
     name: Check if files changed
     runs-on: ubuntu-latest
     outputs:
-      folder_changed: ${{ steps.get_boolean_output.outputs.boolean_output }}
+      boolean_output: ${{ steps.get_output.outputs.boolean_output }}
+      all_changed_files: ${{ steps.get_output.outputs.all_changed_files }}
+      output1: 'xyz'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -43,7 +53,7 @@ jobs:
 
       - name: Get combined boolean output
         # if request is PUSH or PR , get appropriate boolean_output
-        id: get_boolean_output
+        id: get_output
         run: |
           if [[ ${{ steps.files_changed_on_push.outcome }} == "success" ]]; then
             all_changed_files=${{ steps.files_changed_on_push.outputs.all_changed_files }}
@@ -54,16 +64,27 @@ jobs:
           echo all files changed are - 
           echo $all_changed_files
           
+          echo "::set-output name=all_changed_files::$all_changed_files"
           echo "::set-output name=boolean_output::false"
           for file in $all_changed_files; do
-          echo file = $file 
-           if [[ $file == ${{inputs.folder_path}} ]]; then
-             echo file matches folder_path pattern
-             echo "::set-output name=boolean_output::true"
-             break
+            echo file = $file 
+            if [[ $file == ${{inputs.folder_path}} ]]; then
+              echo file matches folder_path pattern
+              echo "::set-output name=boolean_output::true"
+              break
            fi
           done
-          
-      
+  
+
+  echo-output:
+    name: echo output from files_changed
+    runs-on: ubuntu-latest
+    needs: if-file-changed
+    steps:
+      - name: echo all changed files
+        run: |
+          echo ${{ needs.if-file-changed.outputs.all_changed_files }} 
+          echo boolean_output=${{ needs.if-file-changed.outputs.boolean_output }} 
+          echo output1=${{ needs.if-file-changed.outputs.output1 }} 
 
           
