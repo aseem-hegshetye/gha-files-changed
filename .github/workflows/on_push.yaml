@@ -10,7 +10,6 @@ jobs:
     with:
       folder_path: .*
 
-
   echo-output:
     name: echo output from files_changed
     runs-on: ubuntu-latest
